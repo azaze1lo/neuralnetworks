@@ -19,18 +19,19 @@ outputs = tf.keras.layers.Dense(NUM_CLASSES, activation=tf.keras.activations.sof
 ```
 ## Графики обучения для нейронной сети с одним сверточным слоем:
 Синяя линия-на валидации, оранжевая линия-на обучении
+* *График метрики точности*
 ![Figure 1](./epoch_categorical_accuracy_original.svg)
-*График метрики точности*
 
+* *График функции потерь*
 ![Figure 2](./epoch_loss_original.svg)
-*График функции потерь*
 
 Розовая линия-на валидации, зелёная линия-на обучении
+* *График метрики точности*
 ![Figure 3](./epoch_categorical_accuracy.svg)
-*График метрики точности*
 
+*График функции потерь:*
 ![Figure 4](./epoch_loss.svg)
-*График функции потерь*
+
 ## архитектура
 ``` 
 inputs = tf.keras.Input(shape=(RESIZE_TO, RESIZE_TO, 3))
