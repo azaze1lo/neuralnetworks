@@ -38,8 +38,11 @@ def parse_proto_example(proto):
   example = tf.io.parse_single_example(proto, keys_to_features)
   example['image'] = tf.image.decode_jpeg(example['image/encoded'], channels=3)
   example['image'] = tf.image.convert_image_dtype(example['image'], dtype=tf.uint8)
-  example['image'] = tf.image.resize(example['image'], tf.constant([RESIZE_TO, RESIZE_TO]))
+  example['image'] = tf.image.resize(example['image'], tf.constant([225, 225]))
   return example['image'], tf.one_hot(example['image/label'], depth=NUM_CLASSES)
+
+def crop (image, label):
+    return tf.image.random_crop(image, [224,224,3]), label
 
 def create_dataset(filenames, batch_size):
   """Create dataset from tfrecords file
@@ -49,6 +52,7 @@ def create_dataset(filenames, batch_size):
   return tf.data.TFRecordDataset(filenames)\
     .map(parse_proto_example, num_parallel_calls=tf.data.AUTOTUNE)\
     .cache()\
+    .map(crop)\
     .batch(batch_size)\
     .prefetch(tf.data.AUTOTUNE)
 
@@ -60,9 +64,7 @@ def exp_decay(epoch):
 
 def build_model():
   inputs = tf.keras.Input(shape=(RESIZE_TO, RESIZE_TO,3))
-  inputs2 = tf.keras.layers.experimental.preprocessing.Resizing(300,300)(inputs)
-  inputs2 = tf.keras.layers.experimental.preprocessing.RandomCrop(224,224)(inputs2)
-  x = EfficientNetB0(include_top=False, input_tensor=inputs2, pooling='avg', weights='imagenet') 
+  x = EfficientNetB0(include_top=False, input_tensor=inputs, pooling='avg', weights='imagenet') 
   x.trainable = False
   outputs = tf.keras.layers.Dense(NUM_CLASSES, activation=tf.keras.activations.softmax)(x.output)
   return tf.keras.Model(inputs=inputs, outputs=outputs)
@@ -86,7 +88,7 @@ def main():
     metrics=[tf.keras.metrics.categorical_accuracy],
   )
 
-  log_dir='{}/crop_300'.format(LOG_DIR)
+  log_dir='{}/crop_225'.format(LOG_DIR)
   model.fit(
     train_dataset,
     epochs=50,
