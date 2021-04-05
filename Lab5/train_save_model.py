@@ -15,6 +15,7 @@ from tensorflow.python import keras as keras
 from tensorflow.python.keras.callbacks import LearningRateScheduler
 from tensorflow.keras.applications import EfficientNetB0
 from math import exp
+from random import choice
 from tensorflow.keras.preprocessing import image
 
 # Avoid greedy memory allocation to allow shared GPU usage
@@ -101,8 +102,8 @@ def main():
     metrics=[tf.keras.metrics.categorical_accuracy],
   )
 
-  log_dir='{}/crop_225'.format(LOG_DIR)
-  checkpoint_dir = '{}/wildlife.ckpt'.format(CHECKPOINTS_DIR)
+  log_dir='{}/saved_model'.format(LOG_DIR)
+  checkpoint_path = '{}/wildlife.ckpt'.format(CHECKPOINTS_DIR)
   
   model.fit(
     train_dataset,
@@ -110,7 +111,7 @@ def main():
     validation_data=validation_dataset,
     callbacks=[
       tf.keras.callbacks.TensorBoard(log_dir),
-      tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_dir, save_weights_only=True, verbose=1)
+      tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only=True, verbose=1),
       LearningRateScheduler(exp_decay)
     ]
   )
