@@ -57,7 +57,7 @@ def rotate (image,label):
 
 def unfreeze_model(model):
     for layer in model.layers[-20:]:
-        if not isinstance(layer, layers.BatchNormalization):
+        if not isinstance(layer, tf.keras.layers.BatchNormalization):
             layer.trainable = True
 
 def create_dataset(filenames, batch_size):
@@ -82,7 +82,11 @@ def exp_decay(epoch):
     return lr
 
 def build_model():
-    return tf.keras.models.load_model('wildlife_trained_model')
+  inputs = tf.keras.Input(shape=(RESIZE_TO, RESIZE_TO,3))
+  x = EfficientNetB0(include_top=False, input_tensor=inputs, pooling='avg', weights='imagenet')
+  x.trainable = False
+  outputs = tf.keras.layers.Dense(NUM_CLASSES, activation=tf.keras.activations.softmax)(x.output)
+  return tf.keras.Model(inputs=inputs, outputs=outputs)
 
 def main():
   args = argparse.ArgumentParser()
@@ -94,25 +98,27 @@ def main():
   train_size = int(TRAIN_SIZE * 0.7 / BATCH_SIZE)
   train_dataset = dataset.take(train_size)
   validation_dataset = dataset.skip(train_size)
-  
+
   model = build_model()
   unfreeze_model(model)
 
   model.compile(
-    optimizer=tf.optimizers.Adam(1e-4),
+          optimizer=tf.optimizers.Adam(1e-4),
     loss=tf.keras.losses.categorical_crossentropy,
     metrics=[tf.keras.metrics.categorical_accuracy],
   )
 
+  checkpoint_path = '{}/wildlife.ckpt'.format(CHECKPOINTS_DIR)
+  model.load_weights(checkpoint_path)
+
   log_dir='{}/fine_tuned_model'.format(LOG_DIR)
-  
+
   model.fit(
     train_dataset,
     epochs=50,
     validation_data=validation_dataset,
     callbacks=[
-      tf.keras.callbacks.TensorBoard(log_dir),
-      LearningRateScheduler(exp_decay)
+      tf.keras.callbacks.TensorBoard(log_dir)
     ]
   )
 
