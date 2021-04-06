@@ -102,12 +102,11 @@ def main():
     metrics=[tf.keras.metrics.categorical_accuracy],
   )
 
-  log_dir='{}/saved_model'.format(LOG_DIR)
-  checkpoint_path = '{}/wildlife.ckpt'.format(CHECKPOINTS_DIR)
+  log_dir='{}/saved_model1'.format(LOG_DIR)
   
   model.fit(
     train_dataset,
-    epochs=50,
+    epochs=15,
     validation_data=validation_dataset,
     callbacks=[
       tf.keras.callbacks.TensorBoard(log_dir),
@@ -115,6 +114,8 @@ def main():
       LearningRateScheduler(exp_decay)
     ]
   )
+  
+  model.save('wildlife_trained_model')
 
 
 if __name__ == '__main__':

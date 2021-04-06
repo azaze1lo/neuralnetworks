@@ -82,10 +82,7 @@ def exp_decay(epoch):
     return lr
 
 def build_model():
-  inputs = tf.keras.Input(shape=(RESIZE_TO, RESIZE_TO,3))
-  x = EfficientNetB0(include_top=False, input_tensor=inputs, pooling='avg', weights='imagenet') 
-  outputs = tf.keras.layers.Dense(NUM_CLASSES, activation=tf.keras.activations.softmax)(x.output)
-  return tf.keras.Model(inputs=inputs, outputs=outputs)
+    return tf.keras.models.load_model('wildlife_trained_model')
 
 def main():
   args = argparse.ArgumentParser()
@@ -102,15 +99,12 @@ def main():
   unfreeze_model(model)
 
   model.compile(
-    optimizer=tf.optimizers.Adam(),
+    optimizer=tf.optimizers.Adam(1e-4),
     loss=tf.keras.losses.categorical_crossentropy,
     metrics=[tf.keras.metrics.categorical_accuracy],
   )
 
   log_dir='{}/fine_tuned_model'.format(LOG_DIR)
-  checkpoint_path = '{}/wildlife.ckpt'.format(CHECKPOINTS_DIR)
-  
-  model.load_weights(checkpoint_path)
   
   model.fit(
     train_dataset,
